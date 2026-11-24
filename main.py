@@ -15,8 +15,29 @@ the finished image.
 
 import os
 import shutil
+import struct
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+POSTER_PIXELS = 1024
+
+
+def png_dimensions(path):
+    # read the IHDR chunk of a PNG with the standard library
+    # alone: 8-byte signature, then length, "IHDR", width, height
+    with open(path, "rb") as fh:
+        head = fh.read(24)
+    if head[:8] != PNG_SIGNATURE or head[12:16] != b"IHDR":
+        raise RuntimeError(f"{path} is not a PNG with an IHDR")
+    return struct.unpack(">II", head[16:24])
+
+
+def verify_poster(path):
+    width, height = png_dimensions(path)
+    if (width, height) != (POSTER_PIXELS, POSTER_PIXELS):
+        raise RuntimeError(
+            f"poster is {width}x{height}, not {POSTER_PIXELS} square")
 
 
 def main() -> None:
@@ -27,6 +48,7 @@ def main() -> None:
     shutil.copyfile(src, dst)
     if os.path.getsize(dst) != os.path.getsize(src):
         raise RuntimeError("entry.png copy is incomplete")
+    verify_poster(dst)
     os.chmod(dst, 0o644)
 
 

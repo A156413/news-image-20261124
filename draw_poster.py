@@ -160,7 +160,26 @@ BRIEFS = [
 ]
 
 
+def self_check():
+    # the poster's contract with its readers, checked before a
+    # single pixel is drawn: one lead, four cards, six briefs,
+    # every kicker numbered in order and every deck non-empty
+    kickers = [LEAD[0]] + [s[0] for s in STORIES]
+    numbers = [k.split(" ")[0] for k in kickers]
+    assert numbers == ["01", "02", "03", "04", "05"], numbers
+    assert len(STORIES) == 4, "the card grid is 2 x 2"
+    assert len(BRIEFS) == 6, "the brief grid is 2 x 3"
+    decks = [LEAD[3]] + [s[3] for s in STORIES]
+    assert all(d.strip() for d in decks), "an empty deck"
+    heads = [LEAD[2]] + [s[2] for s in STORIES]
+    assert all(h.strip() for h in heads), "an empty headline"
+    icons = [LEAD[1]] + [s[1] for s in STORIES]
+    assert all(callable(ic) for ic in icons), "a missing pictogram"
+    assert all(b.strip() for b in BRIEFS), "an empty brief"
+
+
 def main():
+    self_check()
     img = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(img)
 
